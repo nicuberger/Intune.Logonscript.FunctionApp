@@ -1,10 +1,10 @@
 #region Config
-$client = "Intune.Training"
+$client = "BBZ"
 $scriptsPath = "$env:ProgramData\$client\Scripts\LogonScript"
 $logPath = "$env:ProgramData\$client\Logs"
 $logFile = "$logPath\LogonScript-RunOnceConfig.log"
 $psRun = "psRun.vbs"
-$logonScript = "ExampleLogon.ps1"
+$logonScript = "LangugageSwitchLogon.ps1"
 $buildId = "98ad7d19-0834-4d8d-b2e6-976011fda6c5"
 #endregion
 #region Logging

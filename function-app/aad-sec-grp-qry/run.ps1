@@ -14,19 +14,19 @@ $user = $Request.Query.User
 if (-not $user) {
     $user = $Request.Body.User
 }
-if (Test-Path "$env:HOME/site/wwwroot/aadsecqry/driveMaps.json") {
-    $jsonPath = "$env:HOME/site/wwwroot/aadsecqry/driveMaps.json"
-    $drvPath = Get-Content $jsonPath -raw
-    $folders = $ExecutionContext.InvokeCommand.ExpandString( $drvPath ) | ConvertFrom-Json
+if (Test-Path "$env:HOME/site/wwwroot/aadsecqry/languageSwitch.json") {
+    $jsonPath = "$env:HOME/site/wwwroot/aadsecqry/languageSwitch.json"
+    $languagePath = Get-Content $jsonPath -raw
+    $languages = $ExecutionContext.InvokeCommand.ExpandString( $languagePath ) | ConvertFrom-Json
 }
 else {
-    $jsonPath = "$PSScriptRoot/driveMaps.json"
-    $drvPath = Get-Content $jsonPath -raw
-    $folders = $ExecutionContext.InvokeCommand.ExpandString( $drvPath ) | ConvertFrom-Json -Depth 20
+    $jsonPath = "$PSScriptRoot/languageSwitch.json"
+    $languagePath = Get-Content $jsonPath -raw
+    $languages = $ExecutionContext.InvokeCommand.ExpandString( $languagePath ) | ConvertFrom-Json -Depth 20
 }
 $hash = (Get-FileHash $jsonPath).Hash
 $hashCheck = $hash.Substring($hash.Length - 6, 6)
-$folders
+$languages
 #endregion
 #region Functions
 function Get-AuthHeader {
@@ -147,24 +147,20 @@ if ($user) {
         $groups = (Get-JsonFromGraph -token $token -strQuery $groupQuery -ver v1.0).displayName
     }
     #$crdToMap = New-Object System.Collections.Generic.List[System.Object]
-    $drvToMap = New-Object System.Collections.Generic.List[System.Object]
-    $prnToMap = New-Object System.Collections.Generic.List[System.Object]
-    $drvToMap.Add(($folders.drives | Where-Object { $_.group -eq "ALLUSERS" }).drives)
-    $prnToMap.Add(($folders.printers | Where-Object { $_.group -eq "ALLUSERS" }).printers)
-    foreach ($drv in $folders.drives) {
-        if ($groups | Where-Object {$drv.group -contains $_ }) {
-            $drvToMap.Add($drv.drives)
+    $languageToSet = New-Object System.Collections.Generic.List[System.Object]
+    $languageToSet.Add(($languages.languages | Where-Object { $_.group -eq "ALLUSERS" }).languages)
+   
+    foreach ($language in $languages.languages) {
+        if ($groups | Where-Object {$language.group -contains $_ }) {
+            $languageToSet.Add($langugage.languages)
         }
     }
-    foreach ($prn in $folders.printers) {
-        if ($groups | Where-Object {$prn.group -contains $_}) {
-            $prnToMap.Add($prn.printers)
-        }
+
     }
     $result = [PSCustomObject]@{
         hash             = $hashCheck
-        drives           = $drvToMap | Where-Object { $_ }
-        printers         = $prnToMap | Where-Object { $_ }
+        languages        = $languageToSet | Where-Object { $_ }
+
     }
 }
 else {
