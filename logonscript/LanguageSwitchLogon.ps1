@@ -1,6 +1,6 @@
 #region Config
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$client = "Intune.Training"
+$client = "BBZ"
 $logPath = "$ENV:ProgramData\$client\Logs"
 $logFile = "$logPath\LogonScript.log"
 $user = whoami /upn
@@ -9,6 +9,79 @@ $fileServer = 'fileserver.corp'
 $funcUri = 'https://{putURIhere}'
 #endregion
 #region Functions
+function Set-Language {
+    <#
+    .SYNOPSIS
+        Switch Language
+    .PARAMETER language
+        The language to be set
+
+    .EXAMPLE
+        Set-Language -language "de-DE"
+    #>
+    [cmdletbinding(SupportsShouldProcess = $True)]
+    param (
+        [string]$language
+    )
+    $server = ($uncPath -split "\\")[2]
+    $netConn = Test-NetConnection -ComputerName $server | select-object PingSucceeded, NameResolutionSucceeded
+    if (($netConn.PingSucceeded) -and ($netConn.NameResolutionSucceeded)) {
+        if (Test-Path -Path $uncPath) {
+            if (Get-PSDrive | where-object { $_.Name -eq $driveLetter }) {
+                if (Get-PSDrive | where-object { ($_.Name -eq $driveLetter) -and ($_.DisplayRoot -eq $uncPath) }) {
+                    Write-Host "$($driveLetter): Currently Mapped. No action taken.." -ForegroundColor Green
+                }
+                else {
+                    Write-Host "$($driveLetter): Mapped incorrectly. Might need remapping.." -ForegroundColor Yellow
+                    if ($WhatIfPreference) {
+                        Write-Host "would remove drive: $driveLetter"
+                        Write-Host "would map drive $driveLetter with uncPath $uncPath"
+                    }
+                    else {
+                        Write-Host "Removing drive `"$driveLetter`".."
+                        Remove-SmbMapping -LocalPath "$driveLetter`:" -UpdateProfile -Force
+                        Start-Sleep -Seconds 2
+                        Write-Host "Re-mapping drive `"$driveLetter`" to `"$uncPath`".."
+                        New-SmbMapping -LocalPath "$driveLetter`:" -RemotePath $uncPath -Persistent $true
+                        #Remove-PSDrive -Name $driveLetter -PSProvider FileSystem -Scope Global -Force -Verbose
+                        #New-PSDrive -Name $driveLetter -PSProvider FileSystem -Root $uncPath -Scope Global -Persist -Verbose
+                    }
+                }
+            }
+            else {
+                if ($WhatIfPreference) {
+                    Write-Host "would map drive $driveLetter with uncPath $uncPath"
+                }
+                else {
+                    Write-Host "$($driveLetter): not found - mapping to $uncPath" -ForegroundColor Green
+                    New-PSDrive -Name $driveLetter -PSProvider FileSystem -Root $uncPath -Scope Global -Persist -Verbose
+                }
+            }
+        }
+        else {
+            Write-Host "Getting a response from $($server) `nCan't access UNC Path: $($uncPath)." -ForegroundColor Red
+            if (Get-PSDrive | Where-Object { ($_.Name -eq $driveLetter) -and ($_.DisplayRoot -eq $uncPath) }) {
+                if ($WhatIfPreference) {
+                    Write-Host "would remove drive: $driveLetter"
+                }
+                else {
+                    #Remove-PSDrive -Name $driveLetter -PSProvider FileSystem -Scope Global -Force -Verbose
+                }
+            }
+        }
+    }
+    else {
+        Write-Host "Could not reach $($uncPath): Going to check if $($driveLetter) is already mapped and remove it" -ForegroundColor Red
+        if (Get-PSDrive | Where-Object { ($_.Name -eq $driveLetter) -and ($_.DisplayRoot -eq $uncPath) }) {
+            if ($WhatIfPreference) {
+                Write-Host "would remove drive: $driveLetter"
+            }
+            else {
+                #Remove-PSDrive -Name $driveLetter -PSProvider FileSystem -Scope Global -Force -Verbose
+            }
+        }
+    }
+}
 function Set-DriveMapping {
     <#
     .SYNOPSIS

@@ -1,0 +1,24 @@
+{
+    "languages": [
+      {
+        "group": [
+          "C-DU-EDU-French-ALL"
+        ],
+        "languages": [
+          {
+            "languageCode": "fr-FR"            
+          }
+        ]
+      },
+      {
+        "group": [
+          "C-DU-EDU-German-ALL"
+        ],
+        "languages": [
+          {
+            "languageCode": "de-DE"            
+          }
+        ]
+      }
+    ]
+  }
