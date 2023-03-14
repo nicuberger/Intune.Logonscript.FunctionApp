@@ -16,17 +16,17 @@ if (-not $user) {
 }
 if (Test-Path "$env:HOME/site/wwwroot/aadsecqry/languageSwitch.json") {
     $jsonPath = "$env:HOME/site/wwwroot/aadsecqry/languageSwitch.json"
-    $drvPath = Get-Content $jsonPath -raw
-    $folders = $ExecutionContext.InvokeCommand.ExpandString( $drvPath ) | ConvertFrom-Json
+    $languagePath = Get-Content $jsonPath -raw
+    $languages = $ExecutionContext.InvokeCommand.ExpandString( $languagePath ) | ConvertFrom-Json
 }
 else {
     $jsonPath = "$PSScriptRoot/languageSwitch.json"
-    $langPath = Get-Content $jsonPath -raw
-    $folders = $ExecutionContext.InvokeCommand.ExpandString( $langPath ) | ConvertFrom-Json -Depth 20
+    $languagePath = Get-Content $jsonPath -raw
+    $languages = $ExecutionContext.InvokeCommand.ExpandString( $languagePath ) | ConvertFrom-Json -Depth 20
 }
 $hash = (Get-FileHash $jsonPath).Hash
 $hashCheck = $hash.Substring($hash.Length - 6, 6)
-$folders
+$languages
 #endregion
 #region Functions
 function Get-AuthHeader {
@@ -147,18 +147,20 @@ if ($user) {
         $groups = (Get-JsonFromGraph -token $token -strQuery $groupQuery -ver v1.0).displayName
     }
     #$crdToMap = New-Object System.Collections.Generic.List[System.Object]
-    $drvToMap = New-Object System.Collections.Generic.List[System.Object]
-    #$drvToMap.Add(($folders.languages | Where-Object { $_.group -eq "C-DU-EDU-French-ALL" }).languages)
-
-    foreach ($lang in $folders.languages) {
-        if ($groups | Where-Object {$lang.group -contains $_ }) {
-            $drvToMap.Add($lang.languages)
+    $languageToSet = New-Object System.Collections.Generic.List[System.Object]
+    $languageToSet.Add(($languages.languages | Where-Object { $_.group -eq "ALLUSERS" }).languages)
+   
+    foreach ($language in $languages.languages) {
+        if ($groups | Where-Object {$language.group -contains $_ }) {
+            $languageToSet.Add($langugage.languages)
         }
     }
 
+    }
     $result = [PSCustomObject]@{
         hash             = $hashCheck
-        languages           = $drvToMap | Where-Object { $_ }
+        languages        = $languageToSet | Where-Object { $_ }
+
     }
 }
 else {

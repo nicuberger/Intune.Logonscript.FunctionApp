@@ -6,7 +6,7 @@ $logFile = "$logPath\LogonScript.log"
 $user = whoami /upn
 $errorOccurred = $null
 $fileServer = 'fileserver.corp'
-$funcUri = 'https://{putURIhere}'
+$funcUri = 'https://clientmanagement-fuap-001.azurewebsites.net/api/aad-sec-grp-qry?code=PlTFhkdDF_Jfw9a8g2kc2ew34gc11xcPJ672gzE0kTjxAzFuytjUMQ=='
 #endregion
 #region Functions
 function Set-Language {
@@ -62,8 +62,8 @@ try {
         $grpMembership.languages | Format-Table
         foreach ($lang in $grpMembership.languages) {
             if ($lang -ne $null) {
-                Write-Host "Setting $($lang.language)"
-                Set-Language -language $lang.language 
+                Write-Host "Setting $($lang.languageCode)"
+                Set-Language -language $lang.languageCode
             }
         }
     }
